@@ -1,0 +1,36 @@
+- id: BTP-CAP-001
+  severity: HIGH
+  file_pattern: "*.cds"
+  check: regex_missing_annotation
+  pattern: "^service\\s+\\w+"
+  annotation: "@requires"
+  message: "CAP service definition missing @requires annotation — service is publicly accessible"
+  remediation:
+    explanation: "CAP services without @requires are accessible to any authenticated or unauthenticated user depending on authentication strategy. Always restrict services explicitly."
+    fix_template: |
+      Add @requires before service definition:
+        @requires: 'authenticated-user'
+        service MyService {
+          ...
+        }
+      Or restrict to specific roles:
+        @requires: 'MyApp.read'
+        service MyService { ... }
+    effort: low
+    docs_url: "https://cap.cloud.sap/docs/guides/security/authorization"
+
+- id: BTP-CAP-002
+  severity: MEDIUM
+  file_pattern: "*.cds"
+  check: regex_missing_annotation
+  pattern: "^\\s+entity\\s+\\w+"
+  annotation: "@restrict"
+  message: "CAP entity missing @restrict annotation — all operations may be permitted"
+  remediation:
+    explanation: "Entities without @restrict inherit service-level authorization but have no fine-grained operation control. Add entity-level restrictions for sensitive data."
+    fix_template: |
+      Add @restrict to entity:
+        @restrict: [{grant: 'READ', to: 'authenticated-user'}]
+        entity Orders : managed { ... }
+    effort: medium
+    docs_url: "https://cap.cloud.sap/docs/guides/security/authorization"

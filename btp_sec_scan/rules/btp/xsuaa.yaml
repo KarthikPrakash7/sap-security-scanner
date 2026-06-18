@@ -1,0 +1,63 @@
+- id: BTP-XSUAA-001
+  severity: HIGH
+  file_pattern: "xs-security.json"
+  check: json_contains
+  path: "$.scopes[*]['grant-as-authority-to-apps'][*]"
+  value: "$ACCEPT_GRANTED_AUTHORITIES"
+  message: "xs-security.json grants wildcard authority to all apps via $ACCEPT_GRANTED_AUTHORITIES"
+  remediation:
+    explanation: "$ACCEPT_GRANTED_AUTHORITIES allows any app on the subaccount to consume this service's scopes without explicit trust configuration, bypassing app-level authorization."
+    fix_template: |
+      Replace:
+        "grant-as-authority-to-apps": ["$ACCEPT_GRANTED_AUTHORITIES"]
+      With:
+        "grant-as-authority-to-apps": ["your-app-name!t<subaccount-id>"]
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
+
+- id: BTP-XSUAA-002
+  severity: HIGH
+  file_pattern: "xs-security.json"
+  check: json_equals
+  path: "$.tenant-mode"
+  value: "shared"
+  message: "xs-security.json uses tenant-mode=shared which may expose data across tenants"
+  remediation:
+    explanation: "tenant-mode=shared means all tenants share the same UAA service instance. Use dedicated mode unless building a multi-tenant app with explicit tenant isolation."
+    fix_template: |
+      Replace:
+        "tenant-mode": "shared"
+      With:
+        "tenant-mode": "dedicated"
+      Or implement tenant isolation via xsuaa subscription manager.
+    effort: medium
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/multitenancy"
+
+- id: BTP-XSUAA-003
+  severity: MEDIUM
+  file_pattern: "xs-security.json"
+  check: json_not_exists
+  path: "$.xsappname"
+  message: "xs-security.json is missing xsappname field"
+  remediation:
+    explanation: "xsappname uniquely identifies the application in the UAA. Without it, scope and role references may fail at runtime."
+    fix_template: |
+      Add to xs-security.json:
+        "xsappname": "your-app-name"
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
+
+- id: BTP-XSUAA-004
+  severity: MEDIUM
+  file_pattern: "xs-security.json"
+  check: json_empty_array
+  path: "$.scopes"
+  message: "xs-security.json defines no scopes — application has no authorization model"
+  remediation:
+    explanation: "Without scopes defined, the application cannot enforce role-based access control. Any authenticated user can access all endpoints."
+    fix_template: |
+      Add at minimum one scope:
+        "scopes": [{"name": "$XSAPPNAME.read", "description": "Read access"}]
+      Then protect endpoints with role templates referencing this scope.
+    effort: medium
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"

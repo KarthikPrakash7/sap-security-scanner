@@ -1,0 +1,22 @@
+- id: BTP-MTA-001
+  severity: HIGH
+  file_pattern: "mta.yaml"
+  check: yaml_module_missing_require
+  require_type: "org.cloudfoundry.managed-service"
+  service_name_pattern: "xsuaa"
+  message: "mta.yaml contains CF modules without requiring an XSUAA service"
+  remediation:
+    explanation: "Modules without an XSUAA dependency have no authentication enforced at the platform level. HTTP routes will be publicly accessible."
+    fix_template: |
+      Add to each module that serves HTTP traffic:
+        requires:
+          - name: <your-xsuaa-resource-name>
+      And define the XSUAA resource:
+        resources:
+          - name: <your-xsuaa-resource-name>
+            type: org.cloudfoundry.managed-service
+            parameters:
+              service: xsuaa
+              service-plan: application
+    effort: high
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/mta"

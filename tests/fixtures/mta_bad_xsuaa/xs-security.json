@@ -1,0 +1,10 @@
+{
+  "tenant-mode": "shared",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.admin",
+      "description": "Admin access",
+      "grant-as-authority-to-apps": ["$ACCEPT_GRANTED_AUTHORITIES"]
+    }
+  ]
+}

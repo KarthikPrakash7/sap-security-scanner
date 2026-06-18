@@ -1,0 +1,11 @@
+{
+  "xsappname": "my-clean-app",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.read",
+      "description": "Read access",
+      "grant-as-authority-to-apps": ["my-clean-app!t12345"]
+    }
+  ]
+}

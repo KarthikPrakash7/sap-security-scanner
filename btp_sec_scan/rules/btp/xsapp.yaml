@@ -1,0 +1,16 @@
+- id: BTP-XSAPP-001
+  severity: HIGH
+  file_pattern: "xs-app.json"
+  check: json_route_no_auth
+  message: "xs-app.json contains non-static routes with authenticationMethod=none"
+  remediation:
+    explanation: "Routes with authenticationMethod=none bypass XSUAA token validation entirely. Use this only for truly public endpoints like health checks."
+    fix_template: |
+      Change:
+        {"source": "/api/.*", "authenticationMethod": "none"}
+      To:
+        {"source": "/api/.*", "authenticationType": "xsuaa", "scope": "$XSAPPNAME.read"}
+      For health check endpoints that must be public, restrict the source pattern tightly:
+        {"source": "^/health$", "authenticationMethod": "none"}
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
