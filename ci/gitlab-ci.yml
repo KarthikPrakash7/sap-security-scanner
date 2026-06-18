@@ -1,0 +1,14 @@
+btp-security-scan:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl wget tar jq
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+    - |
+      GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
+      wget -q "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz" -O gitleaks.tar.gz
+      tar -xzf gitleaks.tar.gz gitleaks && mv gitleaks /usr/local/bin/
+    - pip install btp-security-scanner
+  script:
+    - btp-sec-scan . --threshold HIGH --no-llm
+  allow_failure: false
