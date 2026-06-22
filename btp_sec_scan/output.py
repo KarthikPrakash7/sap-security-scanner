@@ -21,8 +21,6 @@ def format_json(result: ScanResult) -> str:
     def _serialize(obj):
         if isinstance(obj, Severity):
             return obj.name
-        if dataclasses.is_dataclass(obj):
-            return dataclasses.asdict(obj)
         return str(obj)
 
     def _convert_findings(findings):
@@ -30,8 +28,6 @@ def format_json(result: ScanResult) -> str:
         for f in findings:
             f_dict = dataclasses.asdict(f)
             f_dict["severity"] = f.severity.name
-            if f_dict["remediation"]:
-                f_dict["remediation"] = dataclasses.asdict(f_dict["remediation"])
             converted.append(f_dict)
         return converted
 

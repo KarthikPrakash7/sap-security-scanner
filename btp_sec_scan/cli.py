@@ -6,6 +6,7 @@ from typing import Annotated
 
 import typer
 
+from btp_sec_scan.models import Severity, ScanResult
 from btp_sec_scan.orchestrator import Orchestrator
 from btp_sec_scan.output import format_json, format_table
 
@@ -21,6 +22,22 @@ class Threshold(str, Enum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
+
+
+def _effective_exit_code(result: ScanResult, threshold: Threshold) -> int:
+    if result.scanner_errors:
+        return 3
+    severity_floor = {
+        Threshold.CRITICAL: Severity.CRITICAL,
+        Threshold.HIGH: Severity.HIGH,
+        Threshold.MEDIUM: Severity.MEDIUM,
+    }[threshold]
+    breaching = [f for f in result.findings if f.severity >= severity_floor]
+    if any(f.severity == Severity.CRITICAL for f in breaching):
+        return 1
+    if breaching:
+        return 2
+    return 0
 
 
 @app.command()
@@ -40,4 +57,4 @@ def scan(
     else:
         print(format_table(result))
 
-    sys.exit(result.exit_code)
+    sys.exit(_effective_exit_code(result, threshold))
