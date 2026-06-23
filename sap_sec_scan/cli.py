@@ -6,11 +6,11 @@ from typing import Annotated
 
 import typer
 
-from btp_sec_scan.models import Severity, ScanResult
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.output import format_json, format_sarif, format_table
+from sap_sec_scan.models import Severity, ScanResult
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.output import format_json, format_sarif, format_table
 
-app = typer.Typer(name="btp-sec-scan", help="Security vulnerability scanner for SAP BTP app packages")
+app = typer.Typer(name="sap-sec-scan", help="Security vulnerability scanner for SAP BTP app packages")
 
 
 class OutputFormat(str, Enum):

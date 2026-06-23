@@ -16,7 +16,7 @@ Both are high-value SAP BTP security checks with no workaround in the current ru
 
 ### Approach
 
-Add two new handler methods to `BTPRulesScanner._apply_rule` in `btp_sec_scan/scanners/btp_rules.py`, following the existing `elif` dispatch pattern. No structural changes.
+Add two new handler methods to `BTPRulesScanner._apply_rule` in `sap_sec_scan/scanners/btp_rules.py`, following the existing `elif` dispatch pattern. No structural changes.
 
 ### Check Type 1: `json_greater_than`
 
@@ -73,9 +73,9 @@ Fires when an `mta.yaml` module env var key matches a sensitive pattern AND the 
 
 | File | Change |
 |---|---|
-| `btp_sec_scan/scanners/btp_rules.py` | Add `_check_json_greater_than` and `_check_yaml_env_credentials` methods; wire into `_apply_rule` |
-| `btp_sec_scan/rules/btp/xsuaa.yaml` | Add BTP-XSUAA-006 (token validity) |
-| `btp_sec_scan/rules/btp/mta.yaml` | Add BTP-MTA-002 (env var credentials) |
+| `sap_sec_scan/scanners/btp_rules.py` | Add `_check_json_greater_than` and `_check_yaml_env_credentials` methods; wire into `_apply_rule` |
+| `sap_sec_scan/rules/btp/xsuaa.yaml` | Add BTP-XSUAA-006 (token validity) |
+| `sap_sec_scan/rules/btp/mta.yaml` | Add BTP-MTA-002 (env var credentials) |
 | `tests/fixtures/mta_bad_xsuaa/xs-security.json` | Add `oauth2-configuration.token-validity` to trigger BTP-XSUAA-006 |
 | `tests/fixtures/mta_clean/xs-security.json` | Add valid `oauth2-configuration.token-validity` ≤ 43200 |
 | `tests/fixtures/mta_bad_env/mta.yaml` | New fixture with hardcoded credential in env vars |

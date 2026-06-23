@@ -5,12 +5,12 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
-from btp_sec_scan.models import Severity
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.output import format_json
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.models import Severity
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.output import format_json
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
 
-mcp = FastMCP("btp-security-scanner")
+mcp = FastMCP("sap-security-scanner")
 
 
 def _serialize(obj):

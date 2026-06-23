@@ -1,4 +1,4 @@
-# btp-security-scanner
+# sap-security-scanner
 
 Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP projects for CVEs, hardcoded secrets, and BTP-specific misconfigurations before deployment.
 
@@ -17,7 +17,7 @@ Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP proj
 ## Install
 
 ```bash
-pip install btp-security-scanner
+pip install sap-security-scanner
 ```
 
 Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://github.com/gitleaks/gitleaks) on your PATH.
@@ -25,11 +25,11 @@ Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://g
 ## Usage
 
 ```bash
-btp-sec-scan .
-btp-sec-scan /path/to/my-mta-project
-btp-sec-scan . --format json --no-llm
-btp-sec-scan . --format sarif > results.sarif
-btp-sec-scan . --threshold CRITICAL
+sap-sec-scan .
+sap-sec-scan /path/to/my-mta-project
+sap-sec-scan . --format json --no-llm
+sap-sec-scan . --format sarif > results.sarif
+sap-sec-scan . --threshold CRITICAL
 ```
 
 Formats: `table` (default), `json`, `sarif` (SARIF 2.1.0 for GitHub code scanning).
@@ -55,10 +55,10 @@ Add to `.pre-commit-config.yaml` to block commits with HIGH+ findings:
 
 ```yaml
 repos:
-  - repo: https://github.com/KarthikPrakash7/btp-security-scanner
+  - repo: https://github.com/KarthikPrakash7/sap-security-scanner
     rev: v0.1.0
     hooks:
-      - id: btp-sec-scan
+      - id: sap-sec-scan
 ```
 
 ## Claude Code (MCP)
@@ -68,9 +68,9 @@ Add to `~/.claude.json`:
 ```json
 {
   "mcpServers": {
-    "btp-security-scanner": {
+    "sap-security-scanner": {
       "command": "python",
-      "args": ["-m", "btp_sec_scan.mcp_server"]
+      "args": ["-m", "sap_sec_scan.mcp_server"]
     }
   }
 }

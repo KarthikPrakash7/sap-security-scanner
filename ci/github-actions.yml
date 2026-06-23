@@ -28,12 +28,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install btp-security-scanner
-        run: pip install btp-security-scanner
+      - name: Install sap-security-scanner
+        run: pip install sap-security-scanner
 
       - name: Generate SARIF report
         if: always()
-        run: btp-sec-scan . --format sarif --threshold HIGH --no-llm > btp-results.sarif
+        run: sap-sec-scan . --format sarif --threshold HIGH --no-llm > btp-results.sarif
         continue-on-error: true  # gating exit code must not skip the upload below
 
       - name: Upload SARIF to code scanning
@@ -41,9 +41,9 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: btp-results.sarif
-          category: btp-security-scanner
+          category: sap-security-scanner
 
       - name: Run BTP Security Scan (gate)
-        run: btp-sec-scan . --format table --threshold HIGH --no-llm
+        run: sap-sec-scan . --format table --threshold HIGH --no-llm
         # Exit 1 = CRITICAL (blocks deploy). Exit 2 = HIGH (blocks deploy).
         # Change --threshold CRITICAL to only block on CRITICAL findings.

@@ -1,6 +1,6 @@
 import json
-from btp_sec_scan.models import Finding, Remediation, ScanResult, Severity
-from btp_sec_scan.output import format_json, format_sarif, format_table
+from sap_sec_scan.models import Finding, Remediation, ScanResult, Severity
+from sap_sec_scan.output import format_json, format_sarif, format_table
 
 
 def _make_result(findings=None, errors=None):
@@ -36,7 +36,7 @@ def test_format_table_clean():
 def test_format_sarif_shape_empty():
     sarif = json.loads(format_sarif(_make_result()))
     assert sarif["version"] == "2.1.0"
-    assert sarif["runs"][0]["tool"]["driver"]["name"] == "btp-security-scanner"
+    assert sarif["runs"][0]["tool"]["driver"]["name"] == "sap-security-scanner"
     assert sarif["runs"][0]["results"] == []
     assert sarif["runs"][0]["tool"]["driver"]["rules"] == []
 

@@ -12,11 +12,11 @@
 
 - Python >=3.11
 - uv for package management (not pip directly)
-- All tests in `tests/` directory mirroring `btp_sec_scan/` structure
+- All tests in `tests/` directory mirroring `sap_sec_scan/` structure
 - Integration tests marked `@pytest.mark.integration` — only run when `RUN_INTEGRATION=1` env var set
 - No hardcoded paths — all paths passed as arguments
 - Trivy and Gitleaks called as subprocesses, not Python bindings
-- Rule files live in `btp_sec_scan/rules/btp/` and are bundled with the package
+- Rule files live in `sap_sec_scan/rules/btp/` and are bundled with the package
 - Exit codes: 0=clean, 1=CRITICAL findings, 2=HIGH findings, 3=scanner error
 - Default threshold: HIGH (blocks on HIGH + CRITICAL)
 - No LLM dependency in core scanning — fully offline
@@ -27,21 +27,21 @@
 
 **Files:**
 - Create: `pyproject.toml`
-- Create: `btp_sec_scan/__init__.py`
-- Create: `btp_sec_scan/scanners/__init__.py`
-- Create: `btp_sec_scan/rules/__init__.py`
+- Create: `sap_sec_scan/__init__.py`
+- Create: `sap_sec_scan/scanners/__init__.py`
+- Create: `sap_sec_scan/rules/__init__.py`
 - Create: `tests/__init__.py`
 - Create: `conftest.py`
 - Create: `.gitignore`
 
 **Interfaces:**
-- Produces: installable `btp-sec-scan` package, `pytest` runs without error
+- Produces: installable `sap-sec-scan` package, `pytest` runs without error
 
 - [ ] **Step 1: Create pyproject.toml**
 
 ```toml
 [project]
-name = "btp-security-scanner"
+name = "sap-security-scanner"
 version = "0.1.0"
 description = "Security vulnerability scanner for SAP BTP app packages"
 requires-python = ">=3.11"
@@ -55,7 +55,7 @@ dependencies = [
 ]
 
 [project.scripts]
-btp-sec-scan = "btp_sec_scan.cli:app"
+sap-sec-scan = "sap_sec_scan.cli:app"
 
 [project.optional-dependencies]
 dev = [
@@ -74,16 +74,16 @@ markers = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["btp_sec_scan"]
-include = ["btp_sec_scan/rules/**/*.yaml"]
+packages = ["sap_sec_scan"]
+include = ["sap_sec_scan/rules/**/*.yaml"]
 ```
 
 - [ ] **Step 2: Create package skeleton**
 
 ```bash
-mkdir -p btp_sec_scan/scanners btp_sec_scan/rules/btp tests
-touch btp_sec_scan/__init__.py btp_sec_scan/scanners/__init__.py
-touch btp_sec_scan/rules/__init__.py tests/__init__.py
+mkdir -p sap_sec_scan/scanners sap_sec_scan/rules/btp tests
+touch sap_sec_scan/__init__.py sap_sec_scan/scanners/__init__.py
+touch sap_sec_scan/rules/__init__.py tests/__init__.py
 ```
 
 Create `conftest.py`:
@@ -115,8 +115,8 @@ Expected: "no tests ran" (0 errors)
 - [ ] **Step 4: Commit**
 
 ```bash
-git add pyproject.toml btp_sec_scan/ tests/ conftest.py .gitignore
-git commit -m "chore: scaffold btp-security-scanner project"
+git add pyproject.toml sap_sec_scan/ tests/ conftest.py .gitignore
+git commit -m "chore: scaffold sap-security-scanner project"
 ```
 
 ---
@@ -124,7 +124,7 @@ git commit -m "chore: scaffold btp-security-scanner project"
 ### Task 2: Data Models
 
 **Files:**
-- Create: `btp_sec_scan/models.py`
+- Create: `sap_sec_scan/models.py`
 - Create: `tests/test_models.py`
 
 **Interfaces:**
@@ -139,7 +139,7 @@ git commit -m "chore: scaffold btp-security-scanner project"
 `tests/test_models.py`:
 ```python
 import pytest
-from btp_sec_scan.models import Finding, Remediation, ScanResult, Severity
+from sap_sec_scan.models import Finding, Remediation, ScanResult, Severity
 
 
 def test_severity_ordering():
@@ -195,7 +195,7 @@ def test_scan_result_exit_code_scanner_error():
 ```bash
 pytest tests/test_models.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'btp_sec_scan.models'`
+Expected: `ModuleNotFoundError: No module named 'sap_sec_scan.models'`
 
 - [ ] **Step 3: Implement models.py**
 
@@ -270,7 +270,7 @@ Expected: 6 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add btp_sec_scan/models.py tests/test_models.py
+git add sap_sec_scan/models.py tests/test_models.py
 git commit -m "feat: add Finding, ScanResult, Severity data models"
 ```
 
@@ -279,23 +279,23 @@ git commit -m "feat: add Finding, ScanResult, Severity data models"
 ### Task 3: BTP Rules Engine
 
 **Files:**
-- Create: `btp_sec_scan/rules/btp/xsuaa.yaml`
-- Create: `btp_sec_scan/rules/btp/mta.yaml`
-- Create: `btp_sec_scan/rules/btp/xsapp.yaml`
-- Create: `btp_sec_scan/rules/btp/cap.yaml`
-- Create: `btp_sec_scan/scanners/btp_rules.py`
+- Create: `sap_sec_scan/rules/btp/xsuaa.yaml`
+- Create: `sap_sec_scan/rules/btp/mta.yaml`
+- Create: `sap_sec_scan/rules/btp/xsapp.yaml`
+- Create: `sap_sec_scan/rules/btp/cap.yaml`
+- Create: `sap_sec_scan/scanners/btp_rules.py`
 - Create: `tests/fixtures/mta_clean/xs-security.json`
 - Create: `tests/fixtures/mta_bad_xsuaa/xs-security.json`
 - Create: `tests/fixtures/cap_missing_auth/schema.cds`
 - Create: `tests/test_btp_rules.py`
 
 **Interfaces:**
-- Consumes: `Finding`, `Severity`, `Remediation` from `btp_sec_scan.models`
+- Consumes: `Finding`, `Severity`, `Remediation` from `sap_sec_scan.models`
 - Produces: `BTPRulesScanner(rules_dir: Path | None = None)` with method `scan(path: Path) -> list[Finding]`
 
 - [ ] **Step 1: Create XSUAA rules**
 
-`btp_sec_scan/rules/btp/xsuaa.yaml`:
+`sap_sec_scan/rules/btp/xsuaa.yaml`:
 ```yaml
 - id: BTP-XSUAA-001
   severity: HIGH
@@ -364,7 +364,7 @@ git commit -m "feat: add Finding, ScanResult, Severity data models"
 
 - [ ] **Step 2: Create MTA rules**
 
-`btp_sec_scan/rules/btp/mta.yaml`:
+`sap_sec_scan/rules/btp/mta.yaml`:
 ```yaml
 - id: BTP-MTA-001
   severity: HIGH
@@ -392,7 +392,7 @@ git commit -m "feat: add Finding, ScanResult, Severity data models"
 
 - [ ] **Step 3: Create xs-app rules**
 
-`btp_sec_scan/rules/btp/xsapp.yaml`:
+`sap_sec_scan/rules/btp/xsapp.yaml`:
 ```yaml
 - id: BTP-XSAPP-001
   severity: HIGH
@@ -414,7 +414,7 @@ git commit -m "feat: add Finding, ScanResult, Severity data models"
 
 - [ ] **Step 4: Create CAP rules**
 
-`btp_sec_scan/rules/btp/cap.yaml`:
+`sap_sec_scan/rules/btp/cap.yaml`:
 ```yaml
 - id: BTP-CAP-001
   severity: HIGH
@@ -505,8 +505,8 @@ service CatalogService {
 ```python
 import pytest
 from pathlib import Path
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
-from btp_sec_scan.models import Severity
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.models import Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -566,11 +566,11 @@ def test_finding_severity_correct():
 ```bash
 pytest tests/test_btp_rules.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'btp_sec_scan.scanners.btp_rules'`
+Expected: `ModuleNotFoundError: No module named 'sap_sec_scan.scanners.btp_rules'`
 
 - [ ] **Step 8: Implement btp_rules.py**
 
-`btp_sec_scan/scanners/btp_rules.py`:
+`sap_sec_scan/scanners/btp_rules.py`:
 ```python
 from __future__ import annotations
 import json
@@ -580,7 +580,7 @@ from pathlib import Path
 import yaml
 from jsonpath_ng import parse as jp_parse
 
-from btp_sec_scan.models import Finding, Remediation, Severity
+from sap_sec_scan.models import Finding, Remediation, Severity
 
 _SEVERITY_MAP = {
     "CRITICAL": Severity.CRITICAL,
@@ -738,7 +738,7 @@ Expected: 7 passed
 - [ ] **Step 10: Commit**
 
 ```bash
-git add btp_sec_scan/scanners/btp_rules.py btp_sec_scan/rules/btp/ tests/test_btp_rules.py tests/fixtures/
+git add sap_sec_scan/scanners/btp_rules.py sap_sec_scan/rules/btp/ tests/test_btp_rules.py tests/fixtures/
 git commit -m "feat: add BTP rules engine with XSUAA, MTA, xs-app, and CAP checks"
 ```
 
@@ -747,13 +747,13 @@ git commit -m "feat: add BTP rules engine with XSUAA, MTA, xs-app, and CAP check
 ### Task 4: Trivy + Gitleaks Scanners
 
 **Files:**
-- Create: `btp_sec_scan/scanners/trivy.py`
-- Create: `btp_sec_scan/scanners/gitleaks.py`
+- Create: `sap_sec_scan/scanners/trivy.py`
+- Create: `sap_sec_scan/scanners/gitleaks.py`
 - Create: `tests/test_trivy.py`
 - Create: `tests/test_gitleaks.py`
 
 **Interfaces:**
-- Consumes: `Finding`, `Severity`, `Remediation` from `btp_sec_scan.models`
+- Consumes: `Finding`, `Severity`, `Remediation` from `sap_sec_scan.models`
 - Produces:
   - `TrivyScanner(trivy_path: str = "trivy")` with `scan(path: Path) -> tuple[list[Finding], list[str]]`
   - `GitleaksScanner(gitleaks_path: str = "gitleaks")` with `scan(path: Path) -> tuple[list[Finding], list[str]]`
@@ -766,8 +766,8 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from btp_sec_scan.scanners.trivy import TrivyScanner
-from btp_sec_scan.models import Severity
+from sap_sec_scan.scanners.trivy import TrivyScanner
+from sap_sec_scan.models import Severity
 
 TRIVY_JSON_OUTPUT = {
     "Results": [
@@ -842,8 +842,8 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from btp_sec_scan.scanners.gitleaks import GitleaksScanner
-from btp_sec_scan.models import Severity
+from sap_sec_scan.scanners.gitleaks import GitleaksScanner
+from sap_sec_scan.models import Severity
 
 GITLEAKS_JSON_OUTPUT = [
     {
@@ -896,18 +896,18 @@ def test_gitleaks_no_secrets_returns_empty():
 ```bash
 pytest tests/test_trivy.py tests/test_gitleaks.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'btp_sec_scan.scanners.trivy'`
+Expected: `ModuleNotFoundError: No module named 'sap_sec_scan.scanners.trivy'`
 
 - [ ] **Step 3: Implement trivy.py**
 
-`btp_sec_scan/scanners/trivy.py`:
+`sap_sec_scan/scanners/trivy.py`:
 ```python
 from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
 
-from btp_sec_scan.models import Finding, Remediation, Severity
+from sap_sec_scan.models import Finding, Remediation, Severity
 
 _SEVERITY_MAP = {
     "CRITICAL": Severity.CRITICAL,
@@ -965,14 +965,14 @@ class TrivyScanner:
 
 - [ ] **Step 4: Implement gitleaks.py**
 
-`btp_sec_scan/scanners/gitleaks.py`:
+`sap_sec_scan/scanners/gitleaks.py`:
 ```python
 from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
 
-from btp_sec_scan.models import Finding, Remediation, Severity
+from sap_sec_scan.models import Finding, Remediation, Severity
 
 _SECRET_REMEDIATION = Remediation(
     explanation="Hardcoded credentials in source code can be extracted from git history even after deletion. Rotate the secret immediately.",
@@ -1041,7 +1041,7 @@ Expected: 6 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add btp_sec_scan/scanners/trivy.py btp_sec_scan/scanners/gitleaks.py tests/test_trivy.py tests/test_gitleaks.py
+git add sap_sec_scan/scanners/trivy.py sap_sec_scan/scanners/gitleaks.py tests/test_trivy.py tests/test_gitleaks.py
 git commit -m "feat: add Trivy CVE and Gitleaks secrets scanners"
 ```
 
@@ -1050,8 +1050,8 @@ git commit -m "feat: add Trivy CVE and Gitleaks secrets scanners"
 ### Task 5: Orchestrator + Output
 
 **Files:**
-- Create: `btp_sec_scan/orchestrator.py`
-- Create: `btp_sec_scan/output.py`
+- Create: `sap_sec_scan/orchestrator.py`
+- Create: `sap_sec_scan/output.py`
 - Create: `tests/test_orchestrator.py`
 - Create: `tests/test_output.py`
 
@@ -1069,8 +1069,8 @@ git commit -m "feat: add Trivy CVE and Gitleaks secrets scanners"
 from pathlib import Path
 from unittest.mock import patch
 import pytest
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.models import Finding, Severity
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.models import Finding, Severity
 
 
 def _make_finding(id: str, severity: Severity) -> Finding:
@@ -1078,9 +1078,9 @@ def _make_finding(id: str, severity: Severity) -> Finding:
 
 
 def test_orchestrator_merges_findings():
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([_make_finding("CVE-1", Severity.CRITICAL)], [])
         MockGitleaks.return_value.scan.return_value = ([_make_finding("SEC-1", Severity.CRITICAL)], [])
         MockBTP.return_value.scan.return_value = [_make_finding("BTP-1", Severity.HIGH)]
@@ -1093,9 +1093,9 @@ def test_orchestrator_merges_findings():
 
 
 def test_orchestrator_collects_scanner_errors():
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([], ["trivy not found"])
         MockGitleaks.return_value.scan.return_value = ([], [])
         MockBTP.return_value.scan.return_value = []
@@ -1108,9 +1108,9 @@ def test_orchestrator_collects_scanner_errors():
 
 def test_orchestrator_deduplicates_findings():
     dup = _make_finding("CVE-1", Severity.CRITICAL)
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([dup, dup], [])
         MockGitleaks.return_value.scan.return_value = ([], [])
         MockBTP.return_value.scan.return_value = []
@@ -1123,8 +1123,8 @@ def test_orchestrator_deduplicates_findings():
 `tests/test_output.py`:
 ```python
 import json
-from btp_sec_scan.models import Finding, ScanResult, Severity
-from btp_sec_scan.output import format_json, format_table
+from sap_sec_scan.models import Finding, ScanResult, Severity
+from sap_sec_scan.output import format_json, format_table
 
 
 def _make_result(findings=None, errors=None):
@@ -1170,10 +1170,10 @@ Expected: `ModuleNotFoundError`
 from __future__ import annotations
 from pathlib import Path
 
-from btp_sec_scan.models import Finding, ScanResult
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
-from btp_sec_scan.scanners.gitleaks import GitleaksScanner
-from btp_sec_scan.scanners.trivy import TrivyScanner
+from sap_sec_scan.models import Finding, ScanResult
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.scanners.gitleaks import GitleaksScanner
+from sap_sec_scan.scanners.trivy import TrivyScanner
 
 
 class Orchestrator:
@@ -1217,7 +1217,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 
-from btp_sec_scan.models import ScanResult, Severity
+from sap_sec_scan.models import ScanResult, Severity
 
 _SEVERITY_COLORS = {
     Severity.CRITICAL: "bold red",
@@ -1295,7 +1295,7 @@ Expected: 7 passed
 - [ ] **Step 6: Commit**
 
 ```bash
-git add btp_sec_scan/orchestrator.py btp_sec_scan/output.py tests/test_orchestrator.py tests/test_output.py
+git add sap_sec_scan/orchestrator.py sap_sec_scan/output.py tests/test_orchestrator.py tests/test_output.py
 git commit -m "feat: add orchestrator and output formatters"
 ```
 
@@ -1304,12 +1304,12 @@ git commit -m "feat: add orchestrator and output formatters"
 ### Task 6: CLI
 
 **Files:**
-- Create: `btp_sec_scan/cli.py`
+- Create: `sap_sec_scan/cli.py`
 - Create: `tests/test_cli.py`
 
 **Interfaces:**
-- Consumes: `Orchestrator` from `btp_sec_scan.orchestrator`, `format_table` and `format_json` from `btp_sec_scan.output`
-- Produces: `btp-sec-scan` CLI command registered via `pyproject.toml` entry point `btp_sec_scan.cli:app`
+- Consumes: `Orchestrator` from `sap_sec_scan.orchestrator`, `format_table` and `format_json` from `sap_sec_scan.output`
+- Produces: `sap-sec-scan` CLI command registered via `pyproject.toml` entry point `sap_sec_scan.cli:app`
 
 - [ ] **Step 1: Write failing tests**
 
@@ -1317,8 +1317,8 @@ git commit -m "feat: add orchestrator and output formatters"
 ```python
 from typer.testing import CliRunner
 from unittest.mock import patch
-from btp_sec_scan.cli import app
-from btp_sec_scan.models import Finding, ScanResult, Severity
+from sap_sec_scan.cli import app
+from sap_sec_scan.models import Finding, ScanResult, Severity
 
 runner = CliRunner()
 
@@ -1335,21 +1335,21 @@ def _mock_critical(path):
 
 
 def test_cli_exit_0_clean_project(tmp_path):
-    with patch("btp_sec_scan.cli.Orchestrator") as MockOrch:
+    with patch("sap_sec_scan.cli.Orchestrator") as MockOrch:
         MockOrch.return_value.scan.side_effect = _mock_clean
         result = runner.invoke(app, [str(tmp_path)])
     assert result.exit_code == 0
 
 
 def test_cli_exit_1_critical_findings(tmp_path):
-    with patch("btp_sec_scan.cli.Orchestrator") as MockOrch:
+    with patch("sap_sec_scan.cli.Orchestrator") as MockOrch:
         MockOrch.return_value.scan.side_effect = _mock_critical
         result = runner.invoke(app, [str(tmp_path)])
     assert result.exit_code == 1
 
 
 def test_cli_json_format_output(tmp_path):
-    with patch("btp_sec_scan.cli.Orchestrator") as MockOrch:
+    with patch("sap_sec_scan.cli.Orchestrator") as MockOrch:
         MockOrch.return_value.scan.side_effect = _mock_clean
         result = runner.invoke(app, [str(tmp_path), "--format", "json"])
     import json
@@ -1359,7 +1359,7 @@ def test_cli_json_format_output(tmp_path):
 
 
 def test_cli_no_llm_flag_accepted(tmp_path):
-    with patch("btp_sec_scan.cli.Orchestrator") as MockOrch:
+    with patch("sap_sec_scan.cli.Orchestrator") as MockOrch:
         MockOrch.return_value.scan.side_effect = _mock_clean
         result = runner.invoke(app, [str(tmp_path), "--no-llm"])
     assert result.exit_code == 0
@@ -1370,7 +1370,7 @@ def test_cli_no_llm_flag_accepted(tmp_path):
 ```bash
 pytest tests/test_cli.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'btp_sec_scan.cli'`
+Expected: `ModuleNotFoundError: No module named 'sap_sec_scan.cli'`
 
 - [ ] **Step 3: Implement cli.py**
 
@@ -1383,10 +1383,10 @@ from typing import Annotated
 
 import typer
 
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.output import format_json, format_table
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.output import format_json, format_table
 
-app = typer.Typer(name="btp-sec-scan", help="Security vulnerability scanner for SAP BTP app packages")
+app = typer.Typer(name="sap-sec-scan", help="Security vulnerability scanner for SAP BTP app packages")
 
 
 class OutputFormat(str, Enum):
@@ -1430,15 +1430,15 @@ Expected: 4 passed
 - [ ] **Step 5: Smoke test**
 
 ```bash
-btp-sec-scan --help
-btp-sec-scan . --no-llm
+sap-sec-scan --help
+sap-sec-scan . --no-llm
 ```
 Expected: help text displayed; scan runs and reports scanner errors for missing Trivy/Gitleaks (exit code 3) or clean result
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add btp_sec_scan/cli.py tests/test_cli.py
+git add sap_sec_scan/cli.py tests/test_cli.py
 git commit -m "feat: add CLI with --format, --threshold, --no-llm flags"
 ```
 
@@ -1447,11 +1447,11 @@ git commit -m "feat: add CLI with --format, --threshold, --no-llm flags"
 ### Task 7: MCP Server
 
 **Files:**
-- Create: `btp_sec_scan/mcp_server.py`
+- Create: `sap_sec_scan/mcp_server.py`
 - Create: `tests/test_mcp_server.py`
 
 **Interfaces:**
-- Consumes: `Orchestrator` from `btp_sec_scan.orchestrator`, `BTPRulesScanner` from `btp_sec_scan.scanners.btp_rules`, `format_json` from `btp_sec_scan.output`
+- Consumes: `Orchestrator` from `sap_sec_scan.orchestrator`, `BTPRulesScanner` from `sap_sec_scan.scanners.btp_rules`, `format_json` from `sap_sec_scan.output`
 - Produces: FastMCP server with tools `scan_project(path, threshold, trivy_path, gitleaks_path) -> str`, `scan_file(file_path) -> str`, `list_rules(category) -> str`, `explain_finding(rule_id) -> str`
 
 - [ ] **Step 1: Write failing tests**
@@ -1462,12 +1462,12 @@ import json
 import pytest
 from unittest.mock import patch
 from pathlib import Path
-from btp_sec_scan.models import Finding, ScanResult, Severity
+from sap_sec_scan.models import Finding, ScanResult, Severity
 
 
 def test_scan_project_returns_json():
-    from btp_sec_scan.mcp_server import scan_project
-    with patch("btp_sec_scan.mcp_server.Orchestrator") as MockOrch:
+    from sap_sec_scan.mcp_server import scan_project
+    with patch("sap_sec_scan.mcp_server.Orchestrator") as MockOrch:
         MockOrch.return_value.scan.return_value = ScanResult(findings=[], scan_path="/fake")
         result = scan_project(path="/fake")
     data = json.loads(result)
@@ -1476,8 +1476,8 @@ def test_scan_project_returns_json():
 
 
 def test_scan_file_returns_findings():
-    from btp_sec_scan.mcp_server import scan_file
-    with patch("btp_sec_scan.mcp_server.BTPRulesScanner") as MockBTP:
+    from sap_sec_scan.mcp_server import scan_file
+    with patch("sap_sec_scan.mcp_server.BTPRulesScanner") as MockBTP:
         MockBTP.return_value.scan.return_value = [
             Finding(id="BTP-XSUAA-001", severity=Severity.HIGH, message="test",
                     file_path="/fake/xs-security.json", rule_id="BTP-XSUAA-001")
@@ -1489,7 +1489,7 @@ def test_scan_file_returns_findings():
 
 
 def test_list_rules_returns_all():
-    from btp_sec_scan.mcp_server import list_rules
+    from sap_sec_scan.mcp_server import list_rules
     result = list_rules(category="all")
     data = json.loads(result)
     assert len(data) > 0
@@ -1497,7 +1497,7 @@ def test_list_rules_returns_all():
 
 
 def test_explain_finding_returns_remediation():
-    from btp_sec_scan.mcp_server import explain_finding
+    from sap_sec_scan.mcp_server import explain_finding
     result = explain_finding(rule_id="BTP-XSUAA-001")
     data = json.loads(result)
     assert "explanation" in data
@@ -1505,7 +1505,7 @@ def test_explain_finding_returns_remediation():
 
 
 def test_explain_finding_unknown_rule():
-    from btp_sec_scan.mcp_server import explain_finding
+    from sap_sec_scan.mcp_server import explain_finding
     result = explain_finding(rule_id="DOES-NOT-EXIST")
     data = json.loads(result)
     assert "error" in data
@@ -1516,7 +1516,7 @@ def test_explain_finding_unknown_rule():
 ```bash
 pytest tests/test_mcp_server.py -v
 ```
-Expected: `ModuleNotFoundError: No module named 'btp_sec_scan.mcp_server'`
+Expected: `ModuleNotFoundError: No module named 'sap_sec_scan.mcp_server'`
 
 - [ ] **Step 3: Implement mcp_server.py**
 
@@ -1528,12 +1528,12 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
-from btp_sec_scan.models import Severity
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.output import format_json
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.models import Severity
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.output import format_json
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
 
-mcp = FastMCP("btp-security-scanner")
+mcp = FastMCP("sap-security-scanner")
 
 
 def _serialize(obj):
@@ -1609,7 +1609,7 @@ Expected: 5 passed
 - [ ] **Step 5: Commit**
 
 ```bash
-git add btp_sec_scan/mcp_server.py tests/test_mcp_server.py
+git add sap_sec_scan/mcp_server.py tests/test_mcp_server.py
 git commit -m "feat: add FastMCP server with scan_project, scan_file, list_rules, explain_finding"
 ```
 
@@ -1656,11 +1656,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install btp-security-scanner
-        run: pip install btp-security-scanner
+      - name: Install sap-security-scanner
+        run: pip install sap-security-scanner
 
       - name: Run BTP Security Scan
-        run: btp-sec-scan . --format json --threshold HIGH --no-llm
+        run: sap-sec-scan . --format json --threshold HIGH --no-llm
         # Exit 1 = CRITICAL (blocks deploy). Exit 2 = HIGH (blocks deploy).
         # Change --threshold CRITICAL to only block on CRITICAL findings.
 ```
@@ -1679,9 +1679,9 @@ btp-security-scan:
       GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
       wget -q "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz" -O gitleaks.tar.gz
       tar -xzf gitleaks.tar.gz gitleaks && mv gitleaks /usr/local/bin/
-    - pip install btp-security-scanner
+    - pip install sap-security-scanner
   script:
-    - btp-sec-scan . --threshold HIGH --no-llm
+    - sap-sec-scan . --threshold HIGH --no-llm
   allow_failure: false
 ```
 
@@ -1689,7 +1689,7 @@ btp-security-scan:
 
 `README.md`:
 ```markdown
-# btp-security-scanner
+# sap-security-scanner
 
 Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP projects for CVEs, hardcoded secrets, and BTP-specific misconfigurations before deployment.
 
@@ -1706,7 +1706,7 @@ Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP proj
 ## Install
 
 ```bash
-pip install btp-security-scanner
+pip install sap-security-scanner
 ```
 
 Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://github.com/gitleaks/gitleaks) on your PATH.
@@ -1714,10 +1714,10 @@ Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://g
 ## Usage
 
 ```bash
-btp-sec-scan .
-btp-sec-scan /path/to/my-mta-project
-btp-sec-scan . --format json --no-llm
-btp-sec-scan . --threshold CRITICAL
+sap-sec-scan .
+sap-sec-scan /path/to/my-mta-project
+sap-sec-scan . --format json --no-llm
+sap-sec-scan . --threshold CRITICAL
 ```
 
 ## Exit codes
@@ -1740,9 +1740,9 @@ Add to `~/.claude.json`:
 ```json
 {
   "mcpServers": {
-    "btp-security-scanner": {
+    "sap-security-scanner": {
       "command": "python",
-      "args": ["-m", "btp_sec_scan.mcp_server"]
+      "args": ["-m", "sap_sec_scan.mcp_server"]
     }
   }
 }

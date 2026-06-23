@@ -8,8 +8,8 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 
-from btp_sec_scan import __version__
-from btp_sec_scan.models import ScanResult, Severity
+from sap_sec_scan import __version__
+from sap_sec_scan.models import ScanResult, Severity
 
 _SEVERITY_COLORS = {
     Severity.CRITICAL: "bold red",
@@ -122,9 +122,9 @@ def format_sarif(result: ScanResult) -> str:
         "runs": [{
             "tool": {
                 "driver": {
-                    "name": "btp-security-scanner",
+                    "name": "sap-security-scanner",
                     "version": __version__,
-                    "informationUri": "https://github.com/KarthikPrakash7/btp-security-scanner",
+                    "informationUri": "https://github.com/KarthikPrakash7/sap-security-scanner",
                     "rules": list(rules.values()),
                 }
             },

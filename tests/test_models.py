@@ -1,5 +1,5 @@
 import pytest
-from btp_sec_scan.models import Finding, Remediation, ScanResult, Severity
+from sap_sec_scan.models import Finding, Remediation, ScanResult, Severity
 
 
 def test_severity_ordering():

@@ -2,8 +2,8 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from btp_sec_scan.scanners.trivy import TrivyScanner
-from btp_sec_scan.models import Severity
+from sap_sec_scan.scanners.trivy import TrivyScanner
+from sap_sec_scan.models import Severity
 
 TRIVY_JSON_OUTPUT = {
     "Results": [

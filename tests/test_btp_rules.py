@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
-from btp_sec_scan.models import Severity
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.models import Severity
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

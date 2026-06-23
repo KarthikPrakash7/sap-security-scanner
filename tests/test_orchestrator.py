@@ -1,8 +1,8 @@
 from pathlib import Path
 from unittest.mock import patch
 import pytest
-from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.models import Finding, Severity
+from sap_sec_scan.orchestrator import Orchestrator
+from sap_sec_scan.models import Finding, Severity
 
 
 def _make_finding(id: str, severity: Severity) -> Finding:
@@ -10,9 +10,9 @@ def _make_finding(id: str, severity: Severity) -> Finding:
 
 
 def test_orchestrator_merges_findings():
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([_make_finding("CVE-1", Severity.CRITICAL)], [])
         MockGitleaks.return_value.scan.return_value = ([_make_finding("SEC-1", Severity.CRITICAL)], [])
         MockBTP.return_value.scan.return_value = [_make_finding("BTP-1", Severity.HIGH)]
@@ -25,9 +25,9 @@ def test_orchestrator_merges_findings():
 
 
 def test_orchestrator_collects_scanner_errors():
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([], ["trivy not found"])
         MockGitleaks.return_value.scan.return_value = ([], [])
         MockBTP.return_value.scan.return_value = []
@@ -40,9 +40,9 @@ def test_orchestrator_collects_scanner_errors():
 
 def test_orchestrator_deduplicates_findings():
     dup = _make_finding("CVE-1", Severity.CRITICAL)
-    with patch("btp_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
-         patch("btp_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
-         patch("btp_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
+    with patch("sap_sec_scan.orchestrator.TrivyScanner") as MockTrivy, \
+         patch("sap_sec_scan.orchestrator.GitleaksScanner") as MockGitleaks, \
+         patch("sap_sec_scan.orchestrator.BTPRulesScanner") as MockBTP:
         MockTrivy.return_value.scan.return_value = ([dup, dup], [])
         MockGitleaks.return_value.scan.return_value = ([], [])
         MockBTP.return_value.scan.return_value = []

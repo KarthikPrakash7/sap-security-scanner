@@ -1,7 +1,7 @@
-- id: btp-sec-scan
+- id: sap-sec-scan
   name: BTP Security Scan
   description: Scan SAP BTP app package for CVEs, secrets, and BTP misconfigurations
-  entry: btp-sec-scan
+  entry: sap-sec-scan
   language: python
   pass_filenames: false
   always_run: true

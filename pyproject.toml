@@ -1,5 +1,5 @@
 [project]
-name = "btp-security-scanner"
+name = "sap-security-scanner"
 version = "0.1.0"
 description = "Security vulnerability scanner for SAP BTP app packages"
 requires-python = ">=3.11"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-btp-sec-scan = "btp_sec_scan.cli:app"
+sap-sec-scan = "sap_sec_scan.cli:app"
 
 [project.optional-dependencies]
 dev = [
@@ -33,5 +33,5 @@ markers = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["btp_sec_scan"]
-include = ["btp_sec_scan/rules/**/*.yaml"]
+packages = ["sap_sec_scan"]
+include = ["sap_sec_scan/rules/**/*.yaml"]

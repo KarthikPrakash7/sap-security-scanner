@@ -3,7 +3,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from btp_sec_scan.models import Finding, Remediation, Severity
+from sap_sec_scan.models import Finding, Remediation, Severity
 
 _SEVERITY_MAP = {
     "CRITICAL": Severity.CRITICAL,

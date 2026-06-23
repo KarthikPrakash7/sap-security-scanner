@@ -1,10 +1,10 @@
 from __future__ import annotations
 from pathlib import Path
 
-from btp_sec_scan.models import Finding, ScanResult
-from btp_sec_scan.scanners.btp_rules import BTPRulesScanner
-from btp_sec_scan.scanners.gitleaks import GitleaksScanner
-from btp_sec_scan.scanners.trivy import TrivyScanner
+from sap_sec_scan.models import Finding, ScanResult
+from sap_sec_scan.scanners.btp_rules import BTPRulesScanner
+from sap_sec_scan.scanners.gitleaks import GitleaksScanner
+from sap_sec_scan.scanners.trivy import TrivyScanner
 
 
 class Orchestrator:
