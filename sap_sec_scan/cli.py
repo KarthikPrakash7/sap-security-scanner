@@ -47,10 +47,17 @@ def scan(
     format: Annotated[OutputFormat, typer.Option("--format")] = OutputFormat.table,
     threshold: Annotated[Threshold, typer.Option("--threshold")] = Threshold.HIGH,
     no_llm: Annotated[bool, typer.Option("--no-llm", help="Accepted for compatibility — LLM not used in core scanner")] = False,
+    depscan: Annotated[bool, typer.Option("--depscan", help="Also run OWASP dep-scan (reachability-aware SCA; requires 'owasp-depscan')")] = False,
     trivy_path: Annotated[str, typer.Option(hidden=True)] = "trivy",
     gitleaks_path: Annotated[str, typer.Option(hidden=True)] = "gitleaks",
+    depscan_path: Annotated[str, typer.Option(hidden=True)] = "depscan",
 ) -> None:
-    orchestrator = Orchestrator(trivy_path=trivy_path, gitleaks_path=gitleaks_path)
+    orchestrator = Orchestrator(
+        trivy_path=trivy_path,
+        gitleaks_path=gitleaks_path,
+        depscan_path=depscan_path,
+        use_depscan=depscan,
+    )
     result = orchestrator.scan(path)
 
     if format == OutputFormat.json:

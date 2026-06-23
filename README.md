@@ -7,6 +7,7 @@ Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP proj
 | Category | Engine | Examples |
 |---|---|---|
 | CVEs | Trivy | lodash, spring-core, requests vulnerabilities |
+| CVEs + reachability (opt-in) | OWASP dep-scan | Reachability-aware SCA across npm/maven/pip/go, CycloneDX VDR |
 | Secrets | Gitleaks | Hardcoded clientsecret, API keys, service keys |
 | XSUAA misconfig | BTP Rules | Wildcard authority grants, shared tenant mode, wildcard foreign-scope-references |
 | MTA misconfig | BTP Rules | Routes without XSUAA, public modules, hardcoded env credentials |
@@ -22,6 +23,10 @@ pip install sap-security-scanner
 
 Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://github.com/gitleaks/gitleaks) on your PATH.
 
+Optional: install [OWASP dep-scan](https://github.com/owasp-dep-scan/dep-scan) (`pip install owasp-depscan`) to enable the reachability-aware `--depscan` engine. It runs alongside Trivy, not instead of it.
+
+dep-scan builds an SBOM via [cdxgen](https://github.com/CycloneDX/cdxgen), so it needs **either Docker** (default engine) **or a local cdxgen** (`npm install -g @cyclonedx/cdxgen`) on PATH. On first run it downloads a vulnerability database (~1 GB). If neither cdxgen nor Docker is available, no SBOM is produced and `--depscan` reports a scanner error rather than a false "clean".
+
 ## Usage
 
 ```bash
@@ -30,6 +35,7 @@ sap-sec-scan /path/to/my-mta-project
 sap-sec-scan . --format json --no-llm
 sap-sec-scan . --format sarif > results.sarif
 sap-sec-scan . --threshold CRITICAL
+sap-sec-scan . --depscan          # also run OWASP dep-scan (reachability + SBOM)
 ```
 
 Formats: `table` (default), `json`, `sarif` (SARIF 2.1.0 for GitHub code scanning).
