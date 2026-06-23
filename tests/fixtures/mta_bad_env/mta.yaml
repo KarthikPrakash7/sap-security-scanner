@@ -1,0 +1,20 @@
+_schema-version: "3.1"
+ID: bad-env-app
+version: 0.0.1
+
+modules:
+  - name: backend
+    type: nodejs
+    path: backend
+    properties:
+      CLIENT_SECRET: hardcoded-secret-value
+      DB_PASSWORD: supersecret123
+    requires:
+      - name: xsuaa
+
+resources:
+  - name: xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application

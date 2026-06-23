@@ -14,3 +14,99 @@
         {"source": "^/health$", "authenticationMethod": "none"}
     effort: low
     docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-002
+  severity: MEDIUM
+  file_pattern: "xs-app.json"
+  check: json_not_exists
+  path: "$.logout"
+  message: "xs-app.json missing logout configuration — session termination not handled"
+  remediation:
+    explanation: "Without a logout endpoint, user sessions cannot be cleanly terminated, leaving XSUAA tokens active until expiry and preventing SLO (single logout) flows."
+    fix_template: |
+      Add to xs-app.json:
+        "logout": {
+          "logoutEndpoint": "/logout",
+          "logoutPage": "/loggedout.html"
+        }
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-003
+  severity: HIGH
+  file_pattern: "xs-app.json"
+  check: json_contains
+  path: "$.cors[*].allowedOrigin[*]"
+  value: "*"
+  message: "xs-app.json allows CORS requests from any origin — wildcard allowedOrigin in cors config"
+  remediation:
+    explanation: "A CORS wildcard ('*') allows any domain to make cross-origin requests to your app, enabling cross-site request forgery and data exfiltration from authenticated sessions."
+    fix_template: |
+      Replace wildcard with explicit allowed origins:
+        "cors": [{
+          "uriPattern": "^/.*",
+          "allowedOrigin": ["https://your-app.cfapps.eu10.hana.ondemand.com"]
+        }]
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-004
+  severity: LOW
+  file_pattern: "xs-app.json"
+  check: json_not_exists
+  path: "$.sessionTimeout"
+  message: "xs-app.json missing sessionTimeout — sessions use AppRouter default (15 minutes)"
+  remediation:
+    explanation: "Without explicit sessionTimeout, the AppRouter uses a 15-minute default. Set this explicitly to match your security policy and token validity."
+    fix_template: |
+      Add to xs-app.json (value in minutes):
+        "sessionTimeout": 30
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-005
+  severity: LOW
+  file_pattern: "xs-app.json"
+  check: json_not_exists
+  path: "$.authenticationMethod"
+  message: "xs-app.json missing root-level authenticationMethod — relying on per-route defaults"
+  remediation:
+    explanation: "Without an explicit root authenticationMethod, any route missing an authenticationType silently falls through to no authentication. Being explicit prevents accidental unauthenticated exposure."
+    fix_template: |
+      Add to xs-app.json:
+        "authenticationMethod": "route"
+      Then ensure every route has an explicit authenticationType.
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-006
+  severity: HIGH
+  file_pattern: "xs-app.json"
+  check: json_contains
+  path: "$.routes[*].csrfProtection"
+  value: false
+  message: "xs-app.json disables CSRF protection on a route — csrfProtection=false"
+  remediation:
+    explanation: "The AppRouter enforces CSRF tokens on modifying requests by default. Setting csrfProtection=false removes that defense, exposing authenticated sessions to cross-site request forgery."
+    fix_template: |
+      Remove the override (CSRF protection is on by default):
+        {"source": "/api/.*", "destination": "backend"}
+      Only disable it for routes that are provably CSRF-safe (e.g. stateless token APIs):
+        {"source": "/public-api/.*", "csrfProtection": false}
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"
+
+- id: BTP-XSAPP-007
+  severity: MEDIUM
+  file_pattern: "xs-app.json"
+  check: json_value_regex
+  path: "$..url"
+  pattern: "^http://"
+  message: "xs-app.json routes traffic over plaintext http:// — credentials and tokens sent in the clear"
+  remediation:
+    explanation: "A route targeting an http:// URL sends request data, cookies, and bearer tokens unencrypted, allowing network interception. BTP backends must be reached over TLS."
+    fix_template: |
+      Change the route url to https:
+        {"source": "/api(.*)", "target": "$1", "url": "https://backend.internal"}
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/routing"

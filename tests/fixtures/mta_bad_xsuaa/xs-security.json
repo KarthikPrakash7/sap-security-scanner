@@ -6,5 +6,9 @@
       "description": "Admin access",
       "grant-as-authority-to-apps": ["$ACCEPT_GRANTED_AUTHORITIES"]
     }
-  ]
+  ],
+  "foreign-scope-references": ["*"],
+  "oauth2-configuration": {
+    "token-validity": 86400
+  }
 }

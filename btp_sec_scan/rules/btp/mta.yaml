@@ -20,3 +20,27 @@
               service-plan: application
     effort: high
     docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/mta"
+
+- id: BTP-MTA-002
+  severity: HIGH
+  file_pattern: "mta.yaml"
+  check: yaml_env_credentials
+  key_patterns:
+    - "(?i)(password|secret|clientsecret|apikey|api_key|token|credential)"
+  skip_value_patterns:
+    - "^~\\{"
+    - "^\\$\\{"
+    - "^\\(\\("
+  message: "mta.yaml contains a hardcoded credential in module env vars"
+  remediation:
+    explanation: "Hardcoded credentials in mta.yaml are stored in source control and visible to anyone with repo access. Use MTA variable references to pull secrets from service bindings or credential stores."
+    fix_template: |
+      Replace:
+        properties:
+          CLIENT_SECRET: actual-secret-value
+      With MTA variable reference:
+        properties:
+          CLIENT_SECRET: ~{xsuaa-binding/credentials/clientsecret}
+      And add the service binding to requires.
+    effort: medium
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/mta"

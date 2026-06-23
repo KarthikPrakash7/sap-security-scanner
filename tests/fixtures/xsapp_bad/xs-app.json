@@ -1,0 +1,26 @@
+{
+  "cors": [
+    {
+      "uriPattern": "^/.*",
+      "allowedOrigin": ["*"]
+    }
+  ],
+  "routes": [
+    {
+      "source": "^/api/.*",
+      "target": "/",
+      "destination": "backend-service"
+    },
+    {
+      "source": "^/modify/.*",
+      "target": "/",
+      "destination": "backend-service",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/legacy(.*)",
+      "target": "$1",
+      "url": "http://legacy-backend.internal"
+    }
+  ]
+}

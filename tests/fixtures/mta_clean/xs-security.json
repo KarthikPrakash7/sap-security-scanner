@@ -7,5 +7,15 @@
       "description": "Read access",
       "grant-as-authority-to-apps": ["my-clean-app!t12345"]
     }
-  ]
+  ],
+  "role-templates": [
+    {
+      "name": "Viewer",
+      "description": "Read-only access",
+      "scope-references": ["$XSAPPNAME.read"]
+    }
+  ],
+  "oauth2-configuration": {
+    "token-validity": 3600
+  }
 }

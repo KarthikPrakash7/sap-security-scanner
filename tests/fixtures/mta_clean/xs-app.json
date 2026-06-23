@@ -1,0 +1,28 @@
+{
+  "authenticationMethod": "route",
+  "sessionTimeout": 30,
+  "logout": {
+    "logoutEndpoint": "/logout",
+    "logoutPage": "/loggedout.html"
+  },
+  "cors": [
+    {
+      "uriPattern": "^/.*",
+      "allowedOrigin": ["https://my-clean-app.cfapps.eu10.hana.ondemand.com"]
+    }
+  ],
+  "routes": [
+    {
+      "source": "^/api/.*",
+      "target": "/",
+      "destination": "backend-service",
+      "authenticationType": "xsuaa"
+    },
+    {
+      "source": "^/health$",
+      "target": "/health",
+      "destination": "backend-service",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}

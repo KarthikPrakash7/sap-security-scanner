@@ -8,6 +8,9 @@ on:
 jobs:
   btp-security-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # required to upload SARIF to the code scanning tab
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +31,19 @@ jobs:
       - name: Install btp-security-scanner
         run: pip install btp-security-scanner
 
-      - name: Run BTP Security Scan
-        run: btp-sec-scan . --format json --threshold HIGH --no-llm
+      - name: Generate SARIF report
+        if: always()
+        run: btp-sec-scan . --format sarif --threshold HIGH --no-llm > btp-results.sarif
+        continue-on-error: true  # gating exit code must not skip the upload below
+
+      - name: Upload SARIF to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: btp-results.sarif
+          category: btp-security-scanner
+
+      - name: Run BTP Security Scan (gate)
+        run: btp-sec-scan . --format table --threshold HIGH --no-llm
         # Exit 1 = CRITICAL (blocks deploy). Exit 2 = HIGH (blocks deploy).
         # Change --threshold CRITICAL to only block on CRITICAL findings.

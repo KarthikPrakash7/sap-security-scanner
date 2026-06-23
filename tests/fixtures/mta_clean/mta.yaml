@@ -1,0 +1,23 @@
+_schema-version: "3.1"
+ID: clean-app
+version: 0.0.1
+
+modules:
+  - name: backend
+    type: nodejs
+    path: backend
+    properties:
+      CLIENT_SECRET: ~{xsuaa-binding/credentials/clientsecret}
+      DB_PASSWORD: ~{db-binding/credentials/password}
+    requires:
+      - name: xsuaa
+        group: services
+        properties:
+          xsuaa-binding: ~{xsuaa/credentials}
+
+resources:
+  - name: xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application

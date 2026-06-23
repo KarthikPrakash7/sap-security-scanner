@@ -8,8 +8,10 @@ Security vulnerability scanner for SAP BTP app packages. Checks MTA and CAP proj
 |---|---|---|
 | CVEs | Trivy | lodash, spring-core, requests vulnerabilities |
 | Secrets | Gitleaks | Hardcoded clientsecret, API keys, service keys |
-| XSUAA misconfig | BTP Rules | Wildcard authority grants, shared tenant mode |
-| MTA misconfig | BTP Rules | Routes without XSUAA, public modules |
+| XSUAA misconfig | BTP Rules | Wildcard authority grants, shared tenant mode, wildcard foreign-scope-references |
+| MTA misconfig | BTP Rules | Routes without XSUAA, public modules, hardcoded env credentials |
+| AppRouter misconfig | BTP Rules | CORS wildcard, disabled CSRF protection, plaintext http:// routes |
+| Destination misconfig | BTP Rules | NoAuthentication or http:// destinations in mta.yaml |
 | CAP auth | BTP Rules | Services/entities missing @requires/@restrict |
 
 ## Install
@@ -26,8 +28,11 @@ Requires [Trivy](https://aquasecurity.github.io/trivy/) and [Gitleaks](https://g
 btp-sec-scan .
 btp-sec-scan /path/to/my-mta-project
 btp-sec-scan . --format json --no-llm
+btp-sec-scan . --format sarif > results.sarif
 btp-sec-scan . --threshold CRITICAL
 ```
+
+Formats: `table` (default), `json`, `sarif` (SARIF 2.1.0 for GitHub code scanning).
 
 ## Exit codes
 
@@ -40,7 +45,21 @@ btp-sec-scan . --threshold CRITICAL
 
 ## CI/CD
 
-Copy `ci/github-actions.yml` or `ci/gitlab-ci.yml` into your BTP project.
+Copy `ci/github-actions.yml` or `ci/gitlab-ci.yml` into your BTP project. The GitHub
+workflow uploads a SARIF report to the repo's code scanning tab, so findings show up
+as inline PR annotations.
+
+## pre-commit
+
+Add to `.pre-commit-config.yaml` to block commits with HIGH+ findings:
+
+```yaml
+repos:
+  - repo: https://github.com/KarthikPrakash7/btp-security-scanner
+    rev: v0.1.0
+    hooks:
+      - id: btp-sec-scan
+```
 
 ## Claude Code (MCP)
 

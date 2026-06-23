@@ -1,0 +1,16 @@
+- id: BTP-DEST-001
+  severity: HIGH
+  file_pattern: "mta.yaml"
+  check: yaml_destination_insecure
+  message: "mta.yaml declares an insecure destination — NoAuthentication or a plaintext http:// URL"
+  remediation:
+    explanation: "A destination with Authentication=NoAuthentication exposes the backend without any credential, and an http:// URL transmits requests and tokens unencrypted. Both let attackers reach or intercept backend traffic."
+    fix_template: |
+      Use TLS and an authenticated flow in the destination config:
+        destinations:
+          - Name: backend
+            URL: https://backend.internal
+            Authentication: OAuth2ClientCredentials
+            TokenServiceURL: https://...
+    effort: medium
+    docs_url: "https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/destinations"

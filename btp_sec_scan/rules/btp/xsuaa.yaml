@@ -47,6 +47,41 @@
     effort: low
     docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
 
+- id: BTP-XSUAA-006
+  severity: MEDIUM
+  file_pattern: "xs-security.json"
+  check: json_greater_than
+  path: "$.oauth2-configuration.token-validity"
+  threshold: 43200
+  message: "xs-security.json sets token-validity > 12h — long-lived tokens increase breach window"
+  remediation:
+    explanation: "Tokens valid for more than 12 hours remain usable long after a user logs out or is revoked. Shorter validity limits exposure from stolen tokens."
+    fix_template: |
+      Set token-validity to 12h (43200 seconds) or less:
+        "oauth2-configuration": {
+          "token-validity": 43200
+        }
+    effort: low
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
+
+- id: BTP-XSUAA-005
+  severity: MEDIUM
+  file_pattern: "xs-security.json"
+  check: json_empty_array
+  path: "$.role-templates"
+  message: "xs-security.json defines no role-templates — users cannot be assigned application roles"
+  remediation:
+    explanation: "Without role-templates, no role collections can reference application roles, meaning RBAC cannot be configured for end users in BTP cockpit."
+    fix_template: |
+      Add at minimum one role-template:
+        "role-templates": [{
+          "name": "Viewer",
+          "description": "Read-only access",
+          "scope-references": ["$XSAPPNAME.read"]
+        }]
+    effort: medium
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
+
 - id: BTP-XSUAA-004
   severity: MEDIUM
   file_pattern: "xs-security.json"
@@ -59,5 +94,22 @@
       Add at minimum one scope:
         "scopes": [{"name": "$XSAPPNAME.read", "description": "Read access"}]
       Then protect endpoints with role templates referencing this scope.
+    effort: medium
+    docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"
+
+- id: BTP-XSUAA-007
+  severity: HIGH
+  file_pattern: "xs-security.json"
+  check: json_contains
+  path: "$.foreign-scope-references[*]"
+  value: "*"
+  message: "xs-security.json requests wildcard foreign-scope-references ['*'] — grants access to every scope of every app"
+  remediation:
+    explanation: "A '*' in foreign-scope-references lets this app consume the scopes of all other applications in the subaccount, a massive over-grant of privilege. Request only the specific foreign scopes the app actually uses."
+    fix_template: |
+      Replace:
+        "foreign-scope-references": ["*"]
+      With the explicit scopes you need:
+        "foreign-scope-references": ["other-app!t123.Read"]
     effort: medium
     docs_url: "https://help.sap.com/docs/btp/sap-business-technology-platform/xsuaa"

@@ -8,7 +8,7 @@ import typer
 
 from btp_sec_scan.models import Severity, ScanResult
 from btp_sec_scan.orchestrator import Orchestrator
-from btp_sec_scan.output import format_json, format_table
+from btp_sec_scan.output import format_json, format_sarif, format_table
 
 app = typer.Typer(name="btp-sec-scan", help="Security vulnerability scanner for SAP BTP app packages")
 
@@ -16,6 +16,7 @@ app = typer.Typer(name="btp-sec-scan", help="Security vulnerability scanner for 
 class OutputFormat(str, Enum):
     table = "table"
     json = "json"
+    sarif = "sarif"
 
 
 class Threshold(str, Enum):
@@ -54,6 +55,8 @@ def scan(
 
     if format == OutputFormat.json:
         print(format_json(result))
+    elif format == OutputFormat.sarif:
+        print(format_sarif(result))
     else:
         print(format_table(result))
 
