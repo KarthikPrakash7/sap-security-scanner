@@ -33,7 +33,7 @@ VDR_OUTPUT = {
 }
 
 
-def _run_scanner(vdr_data, returncode=1, write_report=True, write_bom=True):
+def _run_scanner(vdr_data, returncode=1, write_report=True, write_bom=True, offline=False):
     """Patch subprocess.run and the temp report dir so glob finds our reports.
 
     write_report -> VDR (sbom-universal.vdr.json); write_bom -> SBOM
@@ -48,7 +48,7 @@ def _run_scanner(vdr_data, returncode=1, write_report=True, write_bom=True):
         return MagicMock(returncode=returncode, stdout="", stderr="")
 
     with patch("subprocess.run", side_effect=fake_run):
-        return DepScanScanner().scan(Path("/fake/path"))
+        return DepScanScanner(offline=offline).scan(Path("/fake/path"))
 
 
 def test_depscan_parses_vulnerabilities():
@@ -112,6 +112,68 @@ def test_depscan_empty_vulnerabilities():
     findings, errors = _run_scanner({"vulnerabilities": []}, returncode=0)
     assert findings == []
     assert errors == []
+
+
+def test_depscan_sets_cdxgen_hardening_env_vars():
+    captured = {}
+
+    def capture_run(*args, **kwargs):
+        captured.update(kwargs.get("env", {}))
+        reports_dir = args[0][args[0].index("--reports-dir") + 1]
+        Path(reports_dir, "sbom-universal.cdx.json").write_text('{"components": []}')
+        Path(reports_dir, "sbom-universal.vdr.json").write_text(json.dumps(VDR_OUTPUT))
+        return MagicMock(returncode=0, stdout="", stderr="")
+
+    with patch("subprocess.run", side_effect=capture_run):
+        DepScanScanner().scan(Path("/fake/path"))
+
+    assert captured.get("CDXGEN_NO_INSTALL") == "true"
+    assert captured.get("CDXGEN_SKIP_EXEC") == "true"
+    assert captured.get("FETCH_LICENSE") == "false"
+
+
+def test_depscan_offline_sets_no_auto_update():
+    captured = {}
+
+    def capture_run(*args, **kwargs):
+        captured.update(kwargs.get("env", {}))
+        reports_dir = args[0][args[0].index("--reports-dir") + 1]
+        Path(reports_dir, "sbom-universal.cdx.json").write_text('{"components": []}')
+        Path(reports_dir, "sbom-universal.vdr.json").write_text(json.dumps(VDR_OUTPUT))
+        return MagicMock(returncode=0, stdout="", stderr="")
+
+    with patch("subprocess.run", side_effect=capture_run):
+        DepScanScanner(offline=True).scan(Path("/fake/path"))
+
+    assert captured.get("DEPSCAN_NO_AUTO_UPDATE") == "1"
+
+
+def test_depscan_online_does_not_set_no_auto_update():
+    captured = {}
+
+    def capture_run(*args, **kwargs):
+        captured.update(kwargs.get("env", {}))
+        reports_dir = args[0][args[0].index("--reports-dir") + 1]
+        Path(reports_dir, "sbom-universal.cdx.json").write_text('{"components": []}')
+        return MagicMock(returncode=0, stdout="", stderr="")
+
+    with patch("subprocess.run", side_effect=capture_run):
+        DepScanScanner(offline=False).scan(Path("/fake/path"))
+
+    assert "DEPSCAN_NO_AUTO_UPDATE" not in captured
+
+
+def test_depscan_offline_no_bom_warns_db_missing():
+    def fake_run(*args, **kwargs):
+        return MagicMock(returncode=0, stdout="", stderr="")
+
+    with patch("subprocess.run", side_effect=fake_run):
+        findings, errors = DepScanScanner(offline=True).scan(Path("/fake/path"))
+
+    assert findings == []
+    assert len(errors) == 1
+    assert "offline" in errors[0].lower()
+    assert "database" in errors[0].lower()
 
 
 @pytest.mark.integration
