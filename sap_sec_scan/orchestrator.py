@@ -16,10 +16,11 @@ class Orchestrator:
         depscan_path: str = "depscan",
         rules_dir: Path | None = None,
         use_depscan: bool = False,
+        depscan_offline: bool = False,
     ) -> None:
         self._trivy = TrivyScanner(trivy_path)
         self._gitleaks = GitleaksScanner(gitleaks_path)
-        self._depscan = DepScanScanner(depscan_path)
+        self._depscan = DepScanScanner(depscan_path, offline=depscan_offline)
         self._btp = BTPRulesScanner(rules_dir)
         self._use_depscan = use_depscan
 

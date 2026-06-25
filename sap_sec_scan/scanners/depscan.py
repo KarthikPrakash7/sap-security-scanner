@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -26,8 +27,20 @@ class DepScanScanner:
     versions, so we glob ``*.vdr.json`` rather than hardcoding a name.
     """
 
-    def __init__(self, depscan_path: str = "depscan") -> None:
+    def __init__(self, depscan_path: str = "depscan", offline: bool = False) -> None:
         self._depscan_path = depscan_path
+        self._offline = offline
+
+    def _build_env(self) -> dict[str, str]:
+        env = os.environ.copy()
+        # Prevent cdxgen from downloading language runtimes or executing build tools
+        # against the scanned project (e.g. running gradle/mvn/npm install).
+        env["CDXGEN_NO_INSTALL"] = "true"
+        env["CDXGEN_SKIP_EXEC"] = "true"
+        env["FETCH_LICENSE"] = "false"
+        if self._offline:
+            env["DEPSCAN_NO_AUTO_UPDATE"] = "1"
+        return env
 
     def scan(self, path: Path) -> tuple[list[Finding], list[str]]:
         with tempfile.TemporaryDirectory(prefix="depscan-") as reports_dir:
@@ -38,6 +51,7 @@ class DepScanScanner:
                     capture_output=True,
                     text=True,
                     timeout=300,
+                    env=self._build_env(),
                 )
             except FileNotFoundError:
                 return [], [f"depscan not found at '{self._depscan_path}' — install with 'pip install owasp-depscan'"]
@@ -53,6 +67,13 @@ class DepScanScanner:
                 # which produces no BOM if Docker/cdxgen is unavailable). A BOM file
                 # distinguishes the two — no BOM means a setup problem, not "clean".
                 if not list(Path(reports_dir).glob("*.cdx.json")):
+                    if self._offline:
+                        return [], [
+                            "depscan ran in offline mode but produced no SBOM — "
+                            "vulnerability database may be missing or stale. Run once without "
+                            "--depscan-offline to seed the database, or set DEPSCAN_HOME to a "
+                            "pre-populated database directory."
+                        ]
                     return [], [
                         "depscan ran but produced no SBOM — no vulnerabilities could be "
                         "assessed. Install cdxgen ('npm install -g @cyclonedx/cdxgen') or "
