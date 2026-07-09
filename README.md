@@ -27,6 +27,8 @@ Optional: install [OWASP dep-scan](https://github.com/owasp-dep-scan/dep-scan) (
 
 dep-scan builds an SBOM via [cdxgen](https://github.com/CycloneDX/cdxgen), so it needs **either Docker** (default engine) **or a local cdxgen** (`npm install -g @cyclonedx/cdxgen`) on PATH. On first run it downloads a vulnerability database (~1 GB). If neither cdxgen nor Docker is available, no SBOM is produced and `--depscan` reports a scanner error rather than a false "clean".
 
+The scanner hardens cdxgen by default — it will not download language runtimes (JVM, Node, etc.) or execute build tools (gradle, mvn, npm install) against the scanned project. Use `--depscan-offline` in CI to prevent automatic vuln DB updates after the initial seed; pass `DEPSCAN_HOME` to point at a pre-populated database directory.
+
 ## Usage
 
 ```bash
@@ -35,7 +37,8 @@ sap-sec-scan /path/to/my-mta-project
 sap-sec-scan . --format json --no-llm
 sap-sec-scan . --format sarif > results.sarif
 sap-sec-scan . --threshold CRITICAL
-sap-sec-scan . --depscan          # also run OWASP dep-scan (reachability + SBOM)
+sap-sec-scan . --depscan                    # also run OWASP dep-scan (reachability + SBOM)
+sap-sec-scan . --depscan --depscan-offline  # dep-scan without DB download (requires pre-seeded DEPSCAN_HOME)
 ```
 
 Formats: `table` (default), `json`, `sarif` (SARIF 2.1.0 for GitHub code scanning).
